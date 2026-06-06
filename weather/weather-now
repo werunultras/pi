@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /usr/bin/python3 /home/pi/.local/share/weather/weather_now.py "$@"

@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /home/pi/.local/share/iss-tracker/venv/bin/python /home/pi/.local/share/iss-tracker/iss_next.py "$@"
