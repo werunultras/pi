@@ -9,14 +9,14 @@ The Pi has an on-demand command for checking upcoming visible ISS passes. It doe
 Run:
 
 ```bash
-ssh pi-mesh
+ssh pi
 iss-next
 ```
 
 or from the Mac:
 
 ```bash
-ssh pi-mesh iss-next
+ssh pi iss-next
 ```
 
 ## Location

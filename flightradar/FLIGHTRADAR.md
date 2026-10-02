@@ -6,16 +6,16 @@ Setup date: 2026-06-05
 
 The Raspberry Pi is configured as a Flightradar24 1090 MHz ADS-B feeder.
 
-Use Meshnet for access:
+Use Tailscale for access (see [SETUP.md](../SETUP.md)):
 
 ```bash
-ssh pi-mesh
+ssh pi
 ```
 
-FR24 feeder UI:
+FR24 feeder UI address over Tailscale (HTTP access was not retested on 2026-10-02):
 
 ```text
-http://100.100.117.13:8754
+http://100.75.237.100:8754
 ```
 
 Radar ID:
@@ -196,7 +196,7 @@ sudo reboot
 Then reconnect with:
 
 ```bash
-ssh pi-mesh
+ssh pi
 fr24feed-status
 ```
 

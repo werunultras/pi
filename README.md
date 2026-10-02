@@ -4,18 +4,15 @@ Operational notes and helper scripts for the home Raspberry Pi.
 
 ## Access
 
-Use NordVPN Meshnet as the primary access path:
+Use Tailscale as the primary access path. Connect this Mac to Tailscale, then run:
 
 ```bash
-ssh pi-mesh
+ssh pi
 ```
 
-Meshnet identity:
+Tailscale address: `100.75.237.100` (SSH user `pi`, port `22`).
 
-```text
-Hostname: francesco.dicostanzo-andes.nord
-Meshnet IP: 100.100.117.13
-```
+In Termius, open the saved **Pi** host. It uses the **Pi — Tailscale** SSH key in the Personal vault. The connection was verified on 2026-10-02.
 
 LAN fallback when at home:
 
@@ -28,37 +25,37 @@ ssh pi-ubuntu
 - Flightradar24 ADS-B feeder using the Nooelec RTL-SDR and 978/1090 MHz antenna.
 - On-demand ISS visible-pass checker.
 - On-demand weather checker for the configured location.
-- NordVPN Meshnet for remote access.
+- Tailscale for remote access.
 
 ## Common Commands
 
 Check FR24:
 
 ```bash
-ssh pi-mesh fr24feed-status
+ssh pi fr24feed-status
 ```
 
 Check upcoming visible ISS passes:
 
 ```bash
-ssh pi-mesh iss-next
+ssh pi iss-next
 ```
 
 Check local weather:
 
 ```bash
-ssh pi-mesh weather-now
+ssh pi weather-now
 ```
 
 Check system status:
 
 ```bash
-ssh pi-mesh 'uptime; systemctl is-active fr24feed; nordvpn settings | grep Meshnet'
+ssh pi 'uptime; systemctl is-active fr24feed; tailscale ip -4'
 ```
 
 ## Documentation
 
-- [SETUP.md](SETUP.md): base Pi setup, SSH, Meshnet, hardware, and verification commands.
+- [SETUP.md](SETUP.md): base Pi setup, Tailscale, SSH, Termius, hardware, and verification commands.
 - [flightradar/FLIGHTRADAR.md](flightradar/FLIGHTRADAR.md): FR24 feeder setup and troubleshooting notes.
 - [iss/ISS.md](iss/ISS.md): ISS visible-pass checker setup and usage.
 - [weather/WEATHER.md](weather/WEATHER.md): weather checker setup and usage.
@@ -72,4 +69,4 @@ ssh pi-mesh 'uptime; systemctl is-active fr24feed; nordvpn settings | grep Meshn
 
 ## Notes
 
-Secrets are intentionally not documented in this repo. This includes the Pi password, NordVPN token, and FR24 sharing key.
+Secrets are intentionally not documented in this repo. This includes private SSH keys, the Pi password, VPN tokens, and the FR24 sharing key.

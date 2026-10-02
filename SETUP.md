@@ -1,6 +1,8 @@
 # Raspberry Pi Setup
 
-Setup date: 2026-06-05
+Initial setup date: 2026-06-05
+
+Tailscale and Termius access verified: 2026-10-02
 
 ## Device
 
@@ -8,7 +10,7 @@ Setup date: 2026-06-05
 - User: `pi`
 - OS: Ubuntu 24.04.4 LTS
 - Architecture: `aarch64`
-- Current kernel after upgrade/reboot: `6.8.0-1057-raspi`
+- Kernel shown in the Termius login banner on 2026-10-02: `6.8.0-1060-raspi`
 
 ## Connected Hardware
 
@@ -23,63 +25,46 @@ Bus 004 Device 002: ID 0bda:2838 Realtek Semiconductor Corp. RTL2838 DVB-T
 
 ## Network
 
-The Pi should be reached through NordVPN Meshnet going forward.
+Use Tailscale for remote access. The client device must be connected to the tailnet and able to reach the Pi.
+
+```text
+Hostname: pi
+Tailscale IPv4: 100.75.237.100
+SSH user: pi
+SSH port: 22
+```
 
 Primary SSH command from this Mac:
 
 ```bash
-ssh pi-mesh
+ssh pi
 ```
 
-Meshnet identity:
-
-```text
-Hostname: francesco.dicostanzo-andes.nord
-Meshnet IP: 100.100.117.13
-```
-
-The original home LAN address is still useful as a fallback when on the same network:
-
-```text
-192.168.1.193
-```
-
-LAN fallback SSH command from this Mac:
+The original home LAN address remains configured as a fallback when on the same network:
 
 ```bash
 ssh pi-ubuntu
 ```
 
-Do not rely on the LAN IP for normal access from outside the home. Use `pi-mesh`.
+That alias uses `192.168.1.193`. LAN access was not retested on 2026-10-02.
 
 ## SSH Setup
 
-Passwordless SSH was configured from this Mac.
-
-Local private key:
+Passwordless SSH uses the existing local private key:
 
 ```text
 /Users/francesco/.ssh/codex/pi-ubuntu
 ```
 
-The corresponding public key was added to:
+Its public key was installed in `/home/pi/.ssh/authorized_keys` during the original setup. Keep the private key outside this repository.
 
-```text
-/home/pi/.ssh/authorized_keys
-```
-
-The Mac SSH config was updated at:
-
-```text
-/Users/francesco/.ssh/config
-```
-
-Current aliases:
+The effective settings in `/Users/francesco/.ssh/config` were checked on 2026-10-02:
 
 ```sshconfig
-Host pi-mesh
-  HostName 100.100.117.13
+Host pi
+  HostName 100.75.237.100
   User pi
+  Port 22
   IdentityFile /Users/francesco/.ssh/codex/pi-ubuntu
   IdentitiesOnly yes
 
@@ -90,25 +75,35 @@ Host pi-ubuntu
   IdentitiesOnly yes
 ```
 
-`pi-mesh` was added after verifying the Pi was reachable over Meshnet. The Meshnet host key for `100.100.117.13` was accepted into this Mac's `known_hosts`.
+This uses SSH key authentication over the Tailscale network. The connection check did not establish whether Tailscale SSH is enabled on the Pi.
 
-Use:
+## Termius
 
-```bash
-ssh pi-mesh
-```
+The saved connection in Termius is:
 
-instead of:
+| Setting | Value |
+| --- | --- |
+| Host label | Pi |
+| Address | 100.75.237.100 |
+| Protocol / port | SSH / 22 |
+| Username | pi |
+| Vault | Personal |
+| SSH key label | Pi — Tailscale |
+| Key type | ED25519 |
 
-```bash
-ssh pi-ubuntu
-```
+The existing `/Users/francesco/.ssh/codex/pi-ubuntu` key was imported into the Personal vault with the owner's approval. Termius may sync the saved key through the account.
 
-unless Meshnet is unavailable and the Mac is on the home LAN.
+To connect, enable Tailscale on the client, open Termius, and connect to **Pi**. To recreate the configuration, add a host with the settings above, import the existing key through **Keychain → New key → Import from key file**, then select **Pi — Tailscale** under the host's SSH credentials.
+
+Verification on 2026-10-02:
+
+- A batch-mode SSH connection from this Mac succeeded; `hostname` and `whoami` both returned `pi`, and `tailscale ip -4` returned `100.75.237.100`.
+- Termius opened an authenticated Ubuntu session with the `pi@pi:~$` prompt.
+- The Termius login banner reported that a system restart was required. No update or reboot was performed as part of this connection setup.
 
 ## System Updates
 
-The Pi was updated immediately after setup:
+During the original June setup, the Pi was updated:
 
 ```bash
 sudo apt update
@@ -116,9 +111,11 @@ sudo apt -y upgrade
 sudo reboot
 ```
 
-After reboot, the Pi came back online and no reboot was required.
+After that reboot, the Pi came back online and no further reboot was required at the time. See the dated Termius verification above for the later restart notice.
 
-## NordVPN And Meshnet
+## Historical NordVPN And Meshnet Setup
+
+The following records the June 2026 setup. Tailscale is now the verified access path; the current state of NordVPN and its boot guard was not checked on 2026-10-02. The old `pi-mesh` alias used `100.100.117.13` (`francesco.dicostanzo-andes.nord`).
 
 NordVPN was installed using the official Linux CLI installer:
 
@@ -134,7 +131,7 @@ NordVPN Version 5.0.0
 
 The installer added user `pi` to the `nordvpn` group.
 
-The NordVPN daemon is enabled and active:
+The NordVPN daemon was enabled and active at setup:
 
 ```bash
 systemctl is-enabled nordvpnd
@@ -154,7 +151,7 @@ Meshnet was enabled after login:
 nordvpn set meshnet on
 ```
 
-Current important NordVPN settings:
+NordVPN settings recorded at setup:
 
 ```text
 Technology: NORDLYNX
@@ -164,13 +161,13 @@ Auto-connect: disabled
 Meshnet: enabled
 ```
 
-The VPN tunnel itself is not connected, which is fine for Meshnet access:
+The VPN tunnel was disconnected at setup, while Meshnet was enabled:
 
 ```text
 Status: Disconnected
 ```
 
-## Meshnet Boot Guard
+### Historical Meshnet Boot Guard
 
 A systemd oneshot service was added to ensure Meshnet is enabled after boot:
 
@@ -178,7 +175,7 @@ A systemd oneshot service was added to ensure Meshnet is enabled after boot:
 /etc/systemd/system/nordvpn-meshnet.service
 ```
 
-It is enabled and expected to finish successfully after boot:
+It was enabled and verified to finish successfully after boot:
 
 ```bash
 systemctl is-enabled nordvpn-meshnet.service
@@ -206,16 +203,13 @@ Meshnet: enabled
 Check the Pi from this Mac:
 
 ```bash
-ssh pi-mesh 'hostname; uname -r; uptime'
+ssh pi 'hostname; uname -r; uptime'
 ```
 
-Check NordVPN and Meshnet on the Pi:
+Check the Tailscale address and peer status on the Pi:
 
 ```bash
-nordvpn settings
-nordvpn meshnet peer list
-systemctl status nordvpnd
-systemctl status nordvpn-meshnet.service
+ssh pi 'tailscale ip -4; tailscale status'
 ```
 
 ## ISS Visible Passes
@@ -223,7 +217,7 @@ systemctl status nordvpn-meshnet.service
 The Pi has an on-demand ISS visible-pass checker:
 
 ```bash
-ssh pi-mesh iss-next
+ssh pi iss-next
 ```
 
 It does not create alerts, background services, cron jobs, or SDR activity. Details are documented in:
@@ -237,7 +231,7 @@ iss/ISS.md
 The Pi has an on-demand weather checker for the same configured location:
 
 ```bash
-ssh pi-mesh weather-now
+ssh pi weather-now
 ```
 
 It does not create alerts, background services, cron jobs, or SDR activity. Details are documented in:

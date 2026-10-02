@@ -9,7 +9,7 @@ The Pi has an on-demand command for checking weather at the same location used b
 Run:
 
 ```bash
-ssh pi-mesh weather-now
+ssh pi weather-now
 ```
 
 ## Location
